@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * @author Joystick
+ * 
+ * Contribuido por
+ * @author Pere | Discord
+ * 
+ * @version 1.1.0
+ *
+ */
 class Redirect
 {
   private $location;
@@ -12,28 +21,27 @@ class Redirect
    */
   public static function to($location)
   {
-    $self = new self();
+    $self           = new self();
     $self->location = $location;
+
+    // Verificar que si la URL o locación de redirección es externa o no
+    if (strpos($self->location, 'http') === false) {
+      $self->location = URL . $self->location;
+    }
 
     // Si las cabeceras ya fueron envíadas
     if (headers_sent()) {
       echo '<script type="text/javascript">';
-      echo 'window.location.href="' . URL . $self->location . '";';
+      echo 'window.location.href="' . $self->location . '";';
       echo '</script>';
       echo '<noscript>';
-      echo '<meta http-equiv="refresh" content="0;url=' . URL . $self->location . '" />';
+      echo '<meta http-equiv="refresh" content="0;url=' . $self->location . '" />';
       echo '</noscript>';
       die();
     }
 
-    // Cuando pasamos una url externa a nuestro sitio
-    if (strpos($self->location, 'http') !== false) {
-      header('Location: ' . $self->location);
-      die();
-    }
-
     // Redirigir al usuario a otra sección
-    header('Location: ' . URL . $self->location);
+    header('Location: ' . $self->location);
     die();
   }
 
