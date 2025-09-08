@@ -150,44 +150,54 @@ class BeeTableSchema
    *
    * @return string
    */
-  private function buildQuery()
-  {
-    if (empty($this->columns)) {
-      throw new Exception('No hay columnas para crear la tabla.');
-    }
-
-    $this->sql = sprintf('CREATE TABLE %s', sprintf($this->ph, $this->table_name));
-
-    if (empty($this->columns)) {
-      throw new Exception('No hay columnas, agrega mínimo una columna.');
-    }
-
-    $this->sql .= '(';
-
-    // Agregando cada una de las columnas
-    $total = count($this->columns);
-    foreach ($this->columns as $i => $col) {
-      if (($total - 1) === $i) {
-        $this->sql .= sprintf('%s', $col);
-      } else {
-        $this->sql .= sprintf('%s,', $col);
-      }
-    }
-    
-    $this->sql .= ')';
-
-    $this->sql .= sprintf(' ENGINE=%s AUTO_INCREMENT=%s DEFAULT CHARSET=%s;', $this->engine, $this->auto_inc, $this->charset);
-    // 'CREATE TABLE `movements` (
-    //   `id` int(10) NOT NULL AUTO_INCREMENT,
-    //   `type` varchar(30) DEFAULT NULL,
-    //   `description` varchar(255) DEFAULT NULL,
-    //   `amount` float(10,2) DEFAULT NULL,
-    //   `created_at` datetime DEFAULT NULL,
-    //   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    //   PRIMARY KEY (`id`)
-    // ) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8;'
-    return $this->sql;
+private function buildQuery()
+{
+  if (empty($this->columns)) {
+    throw new Exception('No hay columnas para crear la tabla.');
   }
+
+  $this->sql = sprintf('CREATE TABLE %s', sprintf($this->ph, $this->table_name));
+  $this->sql .= '(';
+
+  // Agregando cada una de las columnas
+  $total = count($this->columns);
+  foreach ($this->columns as $i => $col) {
+    if (($total - 1) === $i) {
+      $this->sql .= sprintf('%s', $col);
+    } else {
+      $this->sql .= sprintf('%s,', $col);
+    }
+  }
+
+  // Agregar claves primarias si existen
+  if (!empty($this->pk) && count($this->pk) > 1) {
+    $pk_columns = array_map(function($col) {
+      return sprintf($this->ph, $col);
+    }, $this->pk);
+    $this->sql .= sprintf(', PRIMARY KEY(%s)', implode(',', $pk_columns));
+  }
+
+  // Agregar claves foráneas si existen
+  if (!empty($this->fk)) {
+    foreach ($this->fk as $fk) {
+      $this->sql .= ', ' . $fk;
+    }
+  }
+
+  $this->sql .= ')';
+
+  $this->sql .= sprintf(' ENGINE=%s AUTO_INCREMENT=%s DEFAULT CHARSET=%s;', $this->engine, $this->auto_inc, $this->charset);
+  // 'CREATE TABLE `movements` (
+  //   `id` int(10) NOT NULL AUTO_INCREMENT,
+  //   `type` varchar(30) DEFAULT NULL,
+  //   `description` varchar(255) DEFAULT NULL,
+  //   `amount` float(10,2) DEFAULT NULL,
+  //   `created_at` datetime DEFAULT NULL,
+  //   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  //   PRIMARY KEY (`id`)
+  // ) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8;'
+  return $this->sql;
+}
 
   /**
    * Regresa el query SQL completo para la creación de la tabla
@@ -207,5 +217,27 @@ class BeeTableSchema
   public function getTableName()
   {
     return $this->table_name;  
+  }
+
+/**
+   * Agrega una clave foránea a la tabla
+   *
+   * @param string $column
+   * @param string $ref_table
+   * @param string $ref_column
+   * @param string $on_delete
+   * @param string $on_update
+   * @return void
+   */
+  public function add_foreign_key(string $column, string $ref_table, string $ref_column, string $on_delete = 'RESTRICT', string $on_update = 'RESTRICT')
+  {
+    $this->fk[] = sprintf(
+      'FOREIGN KEY (%s) REFERENCES %s(%s) ON DELETE %s ON UPDATE %s',
+      sprintf($this->ph, $column),
+      sprintf($this->ph, $ref_table),
+      sprintf($this->ph, $ref_column),
+      $on_delete,
+      $on_update
+    );
   }
 }

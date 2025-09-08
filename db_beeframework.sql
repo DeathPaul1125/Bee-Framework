@@ -191,3 +191,14 @@ CREATE TABLE `bee_roles_permisos` (
 INSERT INTO `bee_roles_permisos` VALUES ('1', '1', '1');
 INSERT INTO `bee_roles_permisos` VALUES ('2', '2', '2');
 INSERT INTO `bee_roles_permisos` VALUES ('3', '2', '3');
+
+-- ----------------------------
+-- Table structure for bee_tables_log
+-- ----------------------------
+DROP TABLE IF EXISTS `bee_migratios`;
+CREATE TABLE `bee_migratios` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `migration` varchar(255) DEFAULT NULL,
+  `batch` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
